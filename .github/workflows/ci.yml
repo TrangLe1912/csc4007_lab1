@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run smoke test (subset)
+        env:
+          HF_HOME: ${{ github.workspace }}/.hf_cache
+          HF_DATASETS_CACHE: ${{ github.workspace }}/.hf_cache/datasets
+        run: |
+          python run_lab1.py --dataset imdb --seed 42 --max_rows 1200 --use_great_expectations --use_cleanlab
+
+      - name: Verify required outputs exist
+        run: |
+          test -f outputs/logs/audit_before.md
+          test -f outputs/logs/audit_after.md
+          test -f outputs/ge/validation_summary.md
+          test -f outputs/ge/expectation_suite.json
+          test -f outputs/ge/validation_result.json
+          test -f outputs/logs/cleanlab_summary.md
+          test -f outputs/logs/cleanlab_label_issues.csv
+          test -f outputs/splits/train.csv
+          test -f outputs/splits/val.csv
+          test -f outputs/splits/test.csv
+          test -f outputs/datacard_stats.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lab1-outputs
+          path: outputs/
+          if-no-files-found: error
