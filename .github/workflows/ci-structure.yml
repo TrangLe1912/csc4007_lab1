@@ -1,0 +1,32 @@
+name: CI (structure check)
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  structure-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Make grader scripts executable
+        run: chmod +x grader/*.sh
+
+      - name: Check core files
+        run: bash grader/check_core_files.sh
+
+      - name: Check src folder
+        run: bash grader/check_src.sh
+
+      - name: Check datacard folder
+        run: bash grader/check_datacard_dir.sh
+
+      - name: Check required datacard files
+        run: bash grader/check_datacard_files.sh
+
+      - name: Check top-level data card
+        run: bash grader/check_top_level_datacard.sh
+
+      - name: Final message
+        run: echo "OK: repo structure looks good"
