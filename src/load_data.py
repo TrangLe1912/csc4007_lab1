@@ -1,8 +1,13 @@
 from __future__ import annotations
+from pathlib import Path
 import pandas as pd
-from datasets import load_dataset
+
 
 def load_imdb(max_rows: int | None = None) -> pd.DataFrame:
+    # Lazy import: local/VietNewsSense audits should not require the Hugging Face
+    # datasets package just to read a CSV file.
+    from datasets import load_dataset
+
     ds = load_dataset("imdb")
     df_train = pd.DataFrame(ds["train"])
     df_test = pd.DataFrame(ds["test"])
@@ -14,7 +19,104 @@ def load_imdb(max_rows: int | None = None) -> pd.DataFrame:
         df = df.head(int(max_rows)).copy()
     return df[["id", "text", "label", "split_orig"]]
 
-def load_dataset_any(name: str, max_rows: int | None = None) -> pd.DataFrame:
+
+def _read_local_table(path: str | Path) -> pd.DataFrame:
+    p = Path(path)
+    if not p.exists():
+        raise FileNotFoundError(f"Data file not found: {p}")
+
+    suffix = p.suffix.lower()
+    if suffix == ".csv":
+        return pd.read_csv(p)
+    if suffix == ".tsv":
+        return pd.read_csv(p, sep="\t")
+    if suffix in {".jsonl", ".ndjson"}:
+        return pd.read_json(p, lines=True)
+    if suffix == ".json":
+        return pd.read_json(p)
+    if suffix == ".parquet":
+        return pd.read_parquet(p)
+
+    raise ValueError(
+        f"Unsupported data format '{suffix}'. Use CSV, TSV, JSON/JSONL, or Parquet."
+    )
+
+
+def load_local_dataset(
+    data_path: str,
+    *,
+    text_column: str = "text",
+    label_column: str | None = "label",
+    id_column: str | None = None,
+    max_rows: int | None = None,
+) -> pd.DataFrame:
+    df = _read_local_table(data_path)
+    if max_rows is not None:
+        df = df.head(int(max_rows)).copy()
+    else:
+        df = df.copy()
+
+    if text_column not in df.columns:
+        raise ValueError(
+            f"Text column '{text_column}' not found. Available columns: {list(df.columns)}"
+        )
+
+    result = df.copy()
+    result["text"] = result[text_column]
+
+    if label_column and label_column in result.columns:
+        result["label"] = result[label_column]
+    else:
+        result["label"] = pd.NA
+
+    if id_column:
+        if id_column not in result.columns:
+            raise ValueError(
+                f"ID column '{id_column}' not found. Available columns: {list(result.columns)}"
+            )
+        result["id"] = result[id_column]
+    elif "id" not in result.columns:
+        result["id"] = range(len(result))
+
+    # Keep useful metadata, but avoid duplicating the source columns that were
+    # standardized into id/text/label.
+    aliases_to_drop = {text_column}
+    if label_column:
+        aliases_to_drop.add(label_column)
+    if id_column:
+        aliases_to_drop.add(id_column)
+    aliases_to_drop -= {"id", "text", "label"}
+    result = result.drop(columns=[c for c in aliases_to_drop if c in result.columns])
+
+    front = ["id", "text", "label"]
+    remaining = [c for c in result.columns if c not in front]
+    return result[front + remaining]
+
+
+def load_dataset_any(
+    name: str,
+    max_rows: int | None = None,
+    *,
+    data_path: str | None = None,
+    text_column: str = "text",
+    label_column: str | None = "label",
+    id_column: str | None = None,
+) -> pd.DataFrame:
     if name == "imdb":
         return load_imdb(max_rows=max_rows)
+
+    if name in {"vietnewssense", "local_csv"}:
+        if not data_path:
+            raise ValueError(
+                f"--data_path is required when --dataset {name}. "
+                "The course materials do not define a fixed VietNewsSense file/schema yet."
+            )
+        return load_local_dataset(
+            data_path,
+            text_column=text_column,
+            label_column=label_column,
+            id_column=id_column,
+            max_rows=max_rows,
+        )
+
     raise ValueError(f"Unsupported dataset: {name}")
