@@ -24,8 +24,8 @@ from src.audit_core import (
 
 def build_arg_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--dataset", default="imdb", choices=["imdb", "vietnewssense", "local_csv"])
-    ap.add_argument("--data_path", default=None, help="Required for vietnewssense/local_csv.")
+    ap.add_argument("--dataset", default="imdb", choices=["imdb", "uvn1", "local_csv"])
+    ap.add_argument("--data_path", default=None, help="Required only for local_csv.")
     ap.add_argument("--text_column", default="text")
     ap.add_argument("--label_column", default="label")
     ap.add_argument("--id_column", default=None)
@@ -40,8 +40,8 @@ def main():
     args = build_arg_parser().parse_args()
     set_seed(args.seed)
 
-    # Backward compatible: IMDB keeps the original outputs/... paths.
-    # Vietnamese/local transfer cases are isolated to avoid overwriting IMDB evidence.
+    # Preserve legacy IMDB output paths used by the current Lab 1 handout.
+    # UVN-1 is isolated so the Vietnamese transfer challenge never overwrites Part A evidence.
     out_dir = Path("outputs") if args.dataset == "imdb" else Path("outputs") / args.dataset
     (out_dir / "logs").mkdir(parents=True, exist_ok=True)
     (out_dir / "splits").mkdir(parents=True, exist_ok=True)
@@ -99,7 +99,6 @@ def main():
     ge_info = None
     if args.use_great_expectations:
         from src.ge_audit import run_great_expectations
-
         allowed_labels = sorted(df_clean["label"].dropna().unique().tolist(), key=lambda x: str(x))
         ge_info = run_great_expectations(
             df_clean[["id", "text", "label"]].copy(),
@@ -114,7 +113,6 @@ def main():
             print("SKIP Cleanlab: dataset has no non-null labels.")
         else:
             from src.cleanlab_audit import run_cleanlab
-
             cv = 3 if args.max_rows else 5
             cl_info = run_cleanlab(
                 df_clean[["id", "text", "label"]].copy(),
@@ -137,10 +135,7 @@ def main():
         "max_rows": args.max_rows,
         "n_rows": schema_stats["n_rows"],
         "label_counts": schema_stats["label_counts"],
-        "text_length": {
-            k: dist_stats[k]
-            for k in ["len_chars_min", "len_chars_median", "len_chars_p95", "len_chars_max"]
-        },
+        "text_length": {k: dist_stats[k] for k in ["len_chars_min", "len_chars_median", "len_chars_p95", "len_chars_max"]},
         "html_artifacts": html_stats,
         "unicode_artifacts": unicode_stats,
         "metadata": metadata_stats,

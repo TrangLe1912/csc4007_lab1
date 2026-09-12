@@ -1,29 +1,30 @@
-# VietNewsSense — Mini Data Card
+# UVN-1 — Mini Data Card
 
-> Đây là Data Card rút gọn cho **Vietnamese Transfer Challenge**, không thay thế Data Card đầy đủ của IMDB ở Part A.
+> Data Card rút gọn cho Vietnamese Transfer Challenge; không thay thế Data Card đầy đủ của IMDB.
 
 ## 1. Dataset snapshot
 
-- **Tên dataset / file:**
-- **Ngôn ngữ:** Tiếng Việt
-- **Số mẫu:**
-- **Khoảng thời gian dữ liệu (nếu có):**
-- **Nguồn / publisher (nếu có):**
-- **Các trường chính:**
-- **Nhãn / task (nếu có):**
+- Dataset: `undertheseanlp/UVN-1`
+- Ngôn ngữ: Tiếng Việt
+- Số mẫu:
+- Số category:
+- Số source:
+- Khoảng `publish_date`:
+- Các trường chính: `id`, `source`, `url`, `category`, `title`, `content`, `publish_date`
 
 ## 2. Intended use
 
-- Dataset phù hợp cho:
-- Dataset **không nên** được dùng cho:
+- Phù hợp cho:
+- Không nên dùng cho:
 - Người dùng dự kiến:
 
 ## 3. Data quality evidence
 
-Điền bằng số liệu từ `outputs/vietnewssense/`.
+Điền bằng số liệu từ `outputs/uvn1/`.
 
-- Missing / empty text:
-- Label distribution:
+- Missing / empty content:
+- Category distribution:
+- Source distribution:
 - Exact duplicates:
 - Near-duplicate evidence:
 - Unicode / encoding issues:
@@ -31,32 +32,30 @@
 
 ## 4. Split & leakage risks
 
-Đánh dấu những rủi ro có căn cứ:
-
 - [ ] preprocessing fitted before split
 - [ ] source leakage
 - [ ] temporal leakage
-- [ ] event leakage / cùng sự kiện xuất hiện ở nhiều split
+- [ ] event leakage
 - [ ] near-duplicate contamination
-- [ ] chưa đủ metadata để kiểm chứng
+- [ ] chưa đủ bằng chứng để kết luận
 
 **Giải thích ngắn:**
 
-## 5. Labeling / annotation
+## 5. Labeling / category
 
-- Label guideline có được mô tả rõ không?
+- Category guideline có rõ không?
 - Có trường hợp ambiguous / multi-topic không?
-- Cleanlab có phù hợp để dùng ở dataset này không? Vì sao?
+- Cleanlab có phù hợp không? Vì sao?
 
 ## 6. Transformations
 
 - Cleaning đã áp dụng:
 - Unicode normalization:
-- Những preprocessing **chưa** thực hiện có chủ đích (ví dụ word segmentation, stop-word removal):
+- Preprocessing chưa thực hiện có chủ đích:
 
 ## 7. Known limitations
 
-Nêu tối thiểu 3 giới hạn có bằng chứng hoặc cần được xác minh.
+Nêu tối thiểu 3 giới hạn có bằng chứng hoặc cần xác minh.
 
 1.
 2.
@@ -66,6 +65,6 @@ Nêu tối thiểu 3 giới hạn có bằng chứng hoặc cần được xác 
 
 **Điều gì từ checklist IMDB có thể tái sử dụng?**
 
-**Điều gì phải điều chỉnh cho dữ liệu tiếng Việt/tin tức?**
+**Điều gì phải điều chỉnh cho UVN-1?**
 
 **Một câu kết luận:**

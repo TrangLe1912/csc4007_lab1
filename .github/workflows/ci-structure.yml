@@ -1,32 +1,49 @@
-name: CI (structure check)
+name: Lab 1 CI
 
 on:
   push:
   pull_request:
 
 jobs:
-  structure-check:
+  lab1-check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Make grader scripts executable
-        run: chmod +x grader/*.sh
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-      - name: Check core files
-        run: bash grader/check_core_files.sh
+      - name: Install smoke-test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas numpy scikit-learn datasets regex pyarrow
 
-      - name: Check src folder
-        run: bash grader/check_src.sh
+      - name: Prepare grader scripts
+        run: |
+          cp -R .github/workflows/grader ./grader
+          chmod +x grader/*.sh
 
-      - name: Check datacard folder
-        run: bash grader/check_datacard_dir.sh
+      - name: Check repository structure
+        run: |
+          bash grader/check_core_files.sh
+          bash grader/check_src.sh
+          bash grader/check_datacard_dir.sh
+          bash grader/check_datacard_files.sh
+          bash grader/check_top_level_datacard.sh
+          test -f reports/vietnews_audit.md
+          test -f reports/transfer_matrix.md
+          test -f datacard/vietnews_mini_datacard.md
 
-      - name: Check required datacard files
-        run: bash grader/check_datacard_files.sh
+      - name: Compile Python
+        run: python -m compileall run_lab1.py src
 
-      - name: Check top-level data card
-        run: bash grader/check_top_level_datacard.sh
+      - name: Smoke test IMDB
+        run: python run_lab1.py --dataset imdb --seed 42 --max_rows 100
+
+      - name: Smoke test UVN-1
+        run: python run_lab1.py --dataset uvn1 --seed 42 --max_rows 100
 
       - name: Final message
-        run: echo "OK: repo structure looks good"
+        run: echo "OK - Lab 1 structure and both dataset pipelines passed"
