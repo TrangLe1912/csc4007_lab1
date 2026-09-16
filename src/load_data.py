@@ -2,12 +2,13 @@ from __future__ import annotations
 from pathlib import Path
 import pandas as pd
 
+IMDB_DATASET_ID = "stanfordnlp/imdb"
 UVN1_DATASET_ID = "undertheseanlp/UVN-1"
 
 
 def load_imdb(max_rows: int | None = None) -> pd.DataFrame:
     from datasets import load_dataset
-    ds = load_dataset("imdb")
+    ds = load_dataset(IMDB_DATASET_ID)
     df_train = pd.DataFrame(ds["train"])
     df_test = pd.DataFrame(ds["test"])
     df_train["split_orig"] = "train"
